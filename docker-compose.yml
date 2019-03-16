@@ -1,0 +1,11 @@
+version: '3.5'
+
+services:
+
+  sentinelloader:
+    build: .
+    image: flaviostutz/sentinelloader
+    ports:
+      - 8888:8888
+      - 6006:6006
+
