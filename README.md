@@ -1,5 +1,12 @@
-# sentinel2-tiles-download
-Sentinel-2 satellite tiles images downloader from Copernicus. With this utility you can specify image resolution/bands to minimize download size.
+# sentinelloader
+Sentinel-2 satellite tiles images downloader from Copernicus. 
+
+With this utility you can specify the desired polygon, image resolution, band name and aproximate dates and it will do the best effort to find all tiles needed to satisfy your requirement, will download minimal data for this task, combine all tiles, crop to the polygon and cache the results, returning an GeoTIFF image with raster for the selected area.
+
+Basically the library provides:
+
+
+# Background
 
 Granules are packages containing data taken from Sentinel-2 satellite for a region on the globe in a specific time. They contain a lot of data for that area (13 bands in different resolutions and other derived bands and quality data). Level-2A products, for example, have ~1GB of data for a single tile (100km2 x 100km2). 
 
@@ -13,7 +20,7 @@ With this utility you can select which bands/resolutions to download. For exampl
 ## Usage
 
 ```shell
-pip install git+https://github.com/flaviostutz/sentinel2-tiles-download
+pip install git+https://github.com/flaviostutz/sentinelloader
 ```
 
 ```python
