@@ -71,3 +71,14 @@ def convertGeoJSONFromWGS84To3857(geojson):
         'type': geojson['type']
     }
     return geo
+
+def saveGeoTiff(imageDataFloat, outputFile, geoTransform, projection):
+    x_pixels = imageDataFloat.shape[0] # number of pixels in x
+    y_pixels = imageDataFloat.shape[1] # number of pixels in y
+    driver = gdal.GetDriverByName('GTiff')
+    image_data = driver.Create(outputFile, x_pixels, y_pixels, 1, gdal.GDT_Float32)
+    image_data.GetRasterBand(1).WriteArray(imageDataFloat)
+    image_data.SetGeoTransform(geoTransform) 
+    image_data.SetProjection(projection)
+    image_data.FlushCache()
+    image_data=None

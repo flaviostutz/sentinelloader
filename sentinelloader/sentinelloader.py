@@ -18,26 +18,30 @@ from PIL import Image
 import uuid
 import fiona
 import numpy as np
-from .utils import *
 
 logger = logging.getLogger('sentinelloader')
 
 class SentinelLoader:
 
-    def __init__(self, dataPath, user, password, apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, loglevel=logging.INFO):
+    def __init__(self, dataPath, user, password, apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, dateToleranceDays=5, cloudCoverage=(0,80), deriveResolutions=True, cacheApiCalls=True, cacheTilesData=True, loglevel=logging.INFO):
         logging.basicConfig(level=loglevel)
         self.api = SentinelAPI(user, password, apiUrl, show_progressbars=showProgressbars)
         self.dataPath = dataPath
         self.user = user
         self.password = password
+        self.dateToleranceDays=dateToleranceDays
+        self.cloudCoverage=cloudCoverage
+        self.deriveResolutions=deriveResolutions
+        self.cacheApiCalls=cacheApiCalls
+        self.cacheTilesData=cacheTilesData
 
     
-    def getProductBandTiles(self, geoPolygon, bandName, resolution, dateReference='now', dateToleranceDays=5, cloudCoverage=(0,80), deriveResolutions=True, cacheApiCalls=True, cacheTilesData=True):
+    def getProductBandTiles(self, geoPolygon, bandName, resolution, dateReference):
         """Downloads and returns file names with Sentinel2 tiles that best fit the polygon area at the desired date reference. It will perform up/downsampling if deriveResolutions is True and the desired resolution is not available for the required band."""
         logger.info("Getting contents. band=%s, resolution=%s, date=%s", bandName, resolution, dateReference)
 
         #find tiles that intercepts geoPolygon within date-tolerance and date+dateTolerance
-        dateTolerance = timedelta(days=dateToleranceDays)
+        dateTolerance = timedelta(days=self.dateToleranceDays)
         dateObj = datetime.now()
         if dateReference != 'now':
             dateObj = datetime.strptime(dateReference, '%Y-%m-%d')
@@ -46,22 +50,29 @@ class SentinelLoader:
         dateTo = dateObj+dateTolerance
 
         resolutionDownload = resolution
-        if deriveResolutions:
+        if self.deriveResolutions:
             if resolution=='10m':
-                if bandName in ['B04', 'B05', 'B06', 'B07', 'B11', 'B12', 'B8A', 'SCL']:
+                if bandName in ['B01', 'B09']:
+                    resolutionDownload = '60m'
+                elif bandName in ['B05', 'B06', 'B07', 'B11', 'B12', 'B8A', 'SCL']:
                     resolutionDownload = '20m'
             elif resolution=='20m':
-                if bandName in ['B02', 'B08']:
+                if bandName in ['B08']:
+                    resolutionDownload = '10m'
+                elif bandName in ['B01', 'B09']:
                     resolutionDownload = '60m'
+            elif resolution=='60m':
+                if bandName in ['B08']:
+                    resolutionDownload = '10m'
 
         logger.info("Querying API for candidate tiles")
         area = Polygon(geoPolygon).wkt
         
         #query cache key
         area_hash = hashlib.md5(area.encode()).hexdigest()
-        apicache_file = self.dataPath + "/apiquery/Sentinel-2-S2MSI2A-%s-%s-%s-%s-%s.csv" % (area_hash, dateFrom.strftime("%Y%m%d"), dateTo.strftime("%Y%m%d"), cloudCoverage[0], cloudCoverage[1])
+        apicache_file = self.dataPath + "/apiquery/Sentinel-2-S2MSI2A-%s-%s-%s-%s-%s.csv" % (area_hash, dateFrom.strftime("%Y%m%d"), dateTo.strftime("%Y%m%d"), self.cloudCoverage[0], self.cloudCoverage[1])
         products_df = None
-        if cacheApiCalls:            
+        if self.cacheApiCalls:            
             if os.path.isfile(apicache_file):
                 logger.debug("Using cached API query contents")
                 products_df = pd.read_csv(apicache_file)
@@ -70,7 +81,7 @@ class SentinelLoader:
                 logger.debug("Querying remote API")
                 products = self.api.query(area, 
                                                date=(dateFrom.strftime("%Y%m%d"), dateTo.strftime("%Y%m%d")),
-                                               platformname='Sentinel-2', producttype='S2MSI2A', cloudcoverpercentage=cloudCoverage)
+                                               platformname='Sentinel-2', producttype='S2MSI2A', cloudcoverpercentage=self.cloudCoverage)
                 products_df = self.api.to_dataframe(products)
                 logger.debug("Caching API query results for later usage")
                 saveFile(apicache_file, products_df.to_csv(index=True))
@@ -113,7 +124,7 @@ class SentinelLoader:
 
             meta_cache_file = self.dataPath + "/products/%s-MTD_MSIL2A.xml" % (sp['uuid'])
             mcontents = ''
-            if cacheTilesData:
+            if self.cacheTilesData:
                 if os.path.isfile(meta_cache_file):
                     logger.debug('Reusing cached metadata info for tile \'%s\'', sp['uuid'])
                     mcontents = loadFile(meta_cache_file)
@@ -127,6 +138,7 @@ class SentinelLoader:
                     saveFile(meta_cache_file, mcontents)
 
             rexp = "<IMAGE_FILE>GRANULE\/([0-9A-Z_]+)\/IMG_DATA\/R%s\/([0-9A-Z_]+_%s_%s)<\/IMAGE_FILE>" % (resolutionDownload, bandName, resolutionDownload)
+#             print(mcontents)
             m = re.search(rexp, mcontents)
             if m==None:
                 raise Exception("Could not find image metadata. uuid=%s, resolution=%s, band=%s" % (sp['uuid'], resolutionDownload, bandName))
@@ -140,7 +152,7 @@ class SentinelLoader:
             if not os.path.exists(os.path.dirname(downloadFilename)):
                 os.makedirs(os.path.dirname(downloadFilename))
 
-            if not cacheTilesData or not os.path.isfile(downloadFilename):
+            if not self.cacheTilesData or not os.path.isfile(downloadFilename):
                 tmp_tile_filejp2 = "%s/tmp/%s.jp2" % (self.dataPath, uuid.uuid4().hex)
                 tmp_tile_filetiff = "%s/tmp/%s.tiff" % (self.dataPath, uuid.uuid4().hex)
                 if not os.path.exists(os.path.dirname(tmp_tile_filejp2)):
@@ -162,16 +174,12 @@ class SentinelLoader:
 
             filename = downloadFilename
             if resolution!=resolutionDownload:
-                fn = self.dataPath + "/products/%s/%s/%s-%s.tiff" % (m1.group(1), sp['uuid'], m.group(2), resolution)
-                logger.info("Upsampling band %s originally in resolution %s to %s" % (bandName, resolutionDownload, resolution))
-                if resolution=='10m':
-                    filename = fn
-                    if not cacheTilesData or not os.path.isfile(filename):
-                        os.system("gdalwarp -tr 10 10 %s %s" % (downloadFilename, filename))
-                elif resolution=='20m':
-                    filename = fn
-                    if not cacheTilesData or not os.path.isfile(filename):
-                        os.system("gdalwarp -tr 20 20 %s %s" % (downloadFilename, filename))
+                filename = self.dataPath + "/products/%s/%s/%s-%s.tiff" % (m1.group(1), sp['uuid'], m.group(2), resolution)
+                logger.info("Resampling band %s originally in resolution %s to %s" % (bandName, resolutionDownload, resolution))
+                rexp = "([0-9]+).*"
+                rnumber = re.search(rexp, resolution)
+                if not self.cacheTilesData or not os.path.isfile(filename):
+                    os.system("gdalwarp -tr %s %s %s %s" % (rnumber.group(1), rnumber.group(1), downloadFilename, filename))
 
             tileFiles.append(filename)
 
@@ -201,12 +209,10 @@ class SentinelLoader:
         logger.debug('Combining tiles into a single image. tmpfile=%s' % tmp_file)
         os.system("gdalwarp -multi -srcnodata 0 -t_srs EPSG:3857 -te %s %s %s %s %s %s" % (s1[0],s1[1],s2[0],s2[1],source_tiles,tmp_file))
 
-#         ds = gdal.Open(tmp_file).ReadAsArray()
-#         logger.debug('Removing temp files')
-#         os.remove(tmp_file)
         return tmp_file
 
-    def getRegionHistory(self, geoPolygon, bandName, resolution, dateFrom, dateTo, daysStep=5, dateToleranceDays=5, cacheApiCalls=True, cacheTilesData=True):
+    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5):
+        """Gets a series of GeoTIFF files for a region for a specific band and resolution in a date range"""
         dateFromObj = datetime.strptime(dateFrom, '%Y-%m-%d')
         dateToObj = datetime.strptime(dateTo, '%Y-%m-%d')
         dateRef = dateFromObj
@@ -215,16 +221,60 @@ class SentinelLoader:
         while dateRef <= dateToObj:
             logger.debug(dateRef)
             dateRefStr = dateRef.strftime("%Y-%m-%d")
-            regionTileFiles = self.getProductBandTiles(geoPolygon, bandName, resolution, dateReference=dateRefStr, dateToleranceDays=dateToleranceDays, cloudCoverage=(0,100), cacheApiCalls=cacheApiCalls, cacheTilesData=cacheTilesData)
-            regionFile = self.cropRegion(geoPolygon, regionTileFiles)
+            regionFile = None
+            if bandOrIndexName in ['NDVI', 'NDWI']:
+                regionFile = self.getRegionIndex(geoPolygon, bandOrIndexName, resolution, dateRefStr)
+            else:
+                regionFile = self.getRegionBand(geoPolygon, bandOrIndexName, resolution, dateRefStr)
             tmp_tile_file = "%s/tmp/%s-%s-%s-%s.tiff" % (self.dataPath, dateRefStr, bandName, resolution, uuid.uuid4().hex)
             os.system("mv %s %s" % (regionFile,tmp_tile_file))
             regionHistoryFiles.append(tmp_tile_file)
             dateRef = dateRef + timedelta(days=daysStep)
             
         return regionHistoryFiles
+    
+    def getRegionBand(self, geoPolygon, bandName, resolution, dateReference):
+        regionTileFiles = self.getProductBandTiles(geoPolygon, bandName, resolution, dateReference)
+        return self.cropRegion(geoPolygon, regionTileFiles)
+    
+    def _getBandDataFloat(self, geoPolygon, bandName, resolution, dateReference):
+        bandFile = self.getRegionBand(geoPolygon, bandName, resolution, dateReference)
+        
+        gdalBand = gdal.Open(bandFile)
+        geoTransform = gdalBand.GetGeoTransform()
+        projection = gdalBand.GetProjection()
+        
+        data = gdalBand.ReadAsArray().astype(np.float)
+        os.remove(bandFile)
+        return data, geoTransform, projection
+        
+    def getRegionIndex(self, geoPolygon, indexName, resolution, dateReference): 
+        if indexName=='NDVI':
+            #get band 04
+            red,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B04', resolution, dateReference)
+            #get band 08
+            nir,_,_ = self._getBandDataFloat(geoPolygon, 'B08', resolution, dateReference)
+            #calculate ndvi
+            ndvi = ((nir - red)/(nir + red))
+            #save file
+            tmp_file = "%s/tmp/ndvi-%s.tiff" % (self.dataPath, uuid.uuid4().hex)
+            saveGeoTiff(ndvi, tmp_file, geoTransform, projection)
+            return tmp_file
+                       
+        elif indexName=='NDWI':
+            #get band 03
+            b03,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B03', resolution, dateReference)
+            #get band 08
+            b08,_,_ = self._getBandDataFloat(geoPolygon, 'B08', resolution, dateReference)
+            #calculate
+            ndwi = ((b03 - b08)/(b03 + b08))
+            #save file
+            tmp_file = "%s/tmp/ndwi-%s.tiff" % (self.dataPath, uuid.uuid4().hex)
+            saveGeoTiff(ndwi, tmp_file, geoTransform, projection)
+            return tmp_file
 
+        else:
+            raise Exception('\'indexName\' must be NDVI or NDWI')
+        
     def cleanupCache(self, filesNotUsedDays):
         os.system("find %s -type f -name '*' -mtime +%s -exec rm {} \;" % (self.dataPath, filesNotUsedDays))
-
-
