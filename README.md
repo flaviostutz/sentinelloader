@@ -1,10 +1,7 @@
 # sentinelloader
 Sentinel-2 satellite tiles images downloader from Copernicus. 
 
-With this utility you can specify the desired polygon, image resolution, band name and aproximate dates and it will do the best effort to find all tiles needed to satisfy your requirement, will download minimal data for this task, combine all tiles, crop to the polygon and cache the results, returning an GeoTIFF image with raster for the selected area.
-
-Basically the library provides:
-
+With this utility you can specify the desired polygon, image resolution, band name and aproximate dates and it will do the best effort to find all tiles needed to satisfy your requirement. Then it will download minimal data by selecting just the needed .jp2 files inside Products, combine downloaded tiles, crop the combined tiles image to the polygon and cache the results, returning a GeoTIFF image with raster for the selected area.
 
 # Background
 
