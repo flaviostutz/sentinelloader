@@ -161,15 +161,16 @@ class SentinelLoader:
             os.system("touch -c %s" % downloadFilename)
 
             filename = downloadFilename
-            if not cacheTilesData or not os.path.isfile(filename):
-                if resolution!=resolutionDownload:
-                    fn = self.dataPath + "/products/%s/%s/%s-%s.tiff" % (m1.group(1), sp['uuid'], m.group(2), resolution)
-                    logger.info("Upsampling band %s originally in resolution %s to %s" % (bandName, resolutionDownload, resolution))
-                    if resolution=='10m':
-                        filename = fn
+            if resolution!=resolutionDownload:
+                fn = self.dataPath + "/products/%s/%s/%s-%s.tiff" % (m1.group(1), sp['uuid'], m.group(2), resolution)
+                logger.info("Upsampling band %s originally in resolution %s to %s" % (bandName, resolutionDownload, resolution))
+                if resolution=='10m':
+                    filename = fn
+                    if not cacheTilesData or not os.path.isfile(filename):
                         os.system("gdalwarp -tr 10 10 %s %s" % (downloadFilename, filename))
-                    elif resolution=='20m':
-                        filename = fn
+                elif resolution=='20m':
+                    filename = fn
+                    if not cacheTilesData or not os.path.isfile(filename):
                         os.system("gdalwarp -tr 20 20 %s %s" % (downloadFilename, filename))
 
             tileFiles.append(filename)
