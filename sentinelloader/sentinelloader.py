@@ -226,7 +226,7 @@ class SentinelLoader:
                 regionFile = self.getRegionIndex(geoPolygon, bandOrIndexName, resolution, dateRefStr)
             else:
                 regionFile = self.getRegionBand(geoPolygon, bandOrIndexName, resolution, dateRefStr)
-            tmp_tile_file = "%s/tmp/%s-%s-%s-%s.tiff" % (self.dataPath, dateRefStr, bandName, resolution, uuid.uuid4().hex)
+            tmp_tile_file = "%s/tmp/%s-%s-%s-%s.tiff" % (self.dataPath, dateRefStr, bandOrIndexName, resolution, uuid.uuid4().hex)
             os.system("mv %s %s" % (regionFile,tmp_tile_file))
             regionHistoryFiles.append(tmp_tile_file)
             dateRef = dateRef + timedelta(days=daysStep)
