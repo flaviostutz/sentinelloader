@@ -24,12 +24,13 @@ logger = logging.getLogger('sentinelloader')
 
 class SentinelLoader:
 
-    def __init__(self, dataPath, user, password, apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, loggingLevel=logging.INFO):
+    def __init__(self, dataPath, user, password, apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, loglevel=logging.INFO):
+        logging.basicConfig(level=loglevel)
         self.api = SentinelAPI(user, password, apiUrl, show_progressbars=showProgressbars)
         self.dataPath = dataPath
         self.user = user
         self.password = password
-        logging.basicConfig(level=loggingLevel)
+
     
     def getProductBandTiles(self, geoPolygon, bandName, resolution, dateReference='now', dateToleranceDays=5, cloudCoverage=(0,80), deriveResolutions=True, cacheApiCalls=True, cacheTilesData=True):
         """Downloads and returns file names with Sentinel2 tiles that best fit the polygon area at the desired date reference. It will perform up/downsampling if deriveResolutions is True and the desired resolution is not available for the required band."""

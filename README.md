@@ -24,8 +24,25 @@ pip install git+https://github.com/flaviostutz/sentinelloader
 ```
 
 ```python
-import sentinelloader
-#download true color image that contains lat/long point (-15,45) at 10m resolution
-tiles = sentinelloader.download("/downloads", [(-15,45)], ('2019-01-01','2019-02-01'), ["10m"], ["tci"])
+import logging
+import os
+from osgeo import gdal
+import matplotlib.pyplot as plt
+from sentinelloader import SentinelLoader
+
+sl = SentinelLoader('/notebooks/data/output/sentinelcache', 
+                    'mycopernicususername', 'mycopernicuspassword',
+                    apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, loglevel=logging.DEBUG)
+
+area = [(-47.873796, -16.044801), (-47.933796, -16.044801),
+        (-47.933796, -15.924801), (-47.873796, -15.924801)]
+
+geoTiffs = sl.getRegionHistory(area, 'TCI', '60m', '2019-01-06', '2019-01-30', daysStep=5,dateToleranceDays=5)
+for geoTiff in geoTiffs:
+    print('Desired image was prepared at')
+    print(geoTiff)
+    os.remove(geoTiff)
+)
 ```
 
+For a Jupyter example, [click here](example.ipynb)
