@@ -260,7 +260,7 @@ class SentinelLoader:
             tmp_file = "%s/tmp/ndvi-%s.tiff" % (self.dataPath, uuid.uuid4().hex)
             saveGeoTiff(ndvi, tmp_file, geoTransform, projection)
             return tmp_file
-                       
+
         elif indexName=='NDWI':
             #get band 03
             b03,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B03', resolution, dateReference)
