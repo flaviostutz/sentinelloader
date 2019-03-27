@@ -4,6 +4,8 @@ from osgeo import ogr
 from shapely.geometry import Point, Polygon, mapping
 import requests
 import subprocess
+from osgeo import gdal, osr    
+import cartopy.crs as ccrs
 
 def gmlToPolygon(gmlStr):
     footprint1 = ogr.CreateGeometryFromGML(gmlStr)
@@ -74,7 +76,6 @@ def convertGeoJSONFromWGS84To3857(geojson):
 
 def saveGeoTiff(imageDataFloat, outputFile, geoTransform, projection):
     driver = gdal.GetDriverByName('GTiff')
-    print(imageDataFloat.shape)
     image_data = driver.Create(outputFile, imageDataFloat.shape[1], imageDataFloat.shape[0], 1, gdal.GDT_Float32)
     image_data.GetRasterBand(1).WriteArray(imageDataFloat)
     image_data.SetGeoTransform(geoTransform) 
