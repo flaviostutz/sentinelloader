@@ -19,6 +19,7 @@ import uuid
 import fiona
 import numpy as np
 import traceback
+from .utils import *
 
 logger = logging.getLogger('sentinelloader')
 
