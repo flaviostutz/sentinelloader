@@ -26,8 +26,7 @@ def downloadFile(url, filepath, user, password):
         print("Downloading %s to %s" % (url, filepath))
         response = requests.get(url, auth=(user, password), stream=True)
         if response.status_code != 200:
-            raise Exception("Could not download file. status=%s" %
-                            response.status_code)
+            raise Exception("Could not download file. status=%s" % response.status_code)
         total_length = response.headers.get('content-length')
 
         if total_length is None:  # no content length header

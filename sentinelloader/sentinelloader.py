@@ -232,7 +232,7 @@ class SentinelLoader:
         
         return tmp_file
 
-    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5):
+    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5, skipMissing=True):
         """Gets a series of GeoTIFF files for a region for a specific band and resolution in a date range"""
         logger.info("Getting region history for band %s from %s to %s at %s" % (bandOrIndexName, dateFrom, dateTo, resolution))
         dateFromObj = datetime.strptime(dateFrom, '%Y-%m-%d')
@@ -254,8 +254,10 @@ class SentinelLoader:
                 regionHistoryFiles.append(tmp_tile_file)
 
             except Exception as e:
-                traceback.print_exc()
-                logger.debug("Couldn't find data for %s using the specified filter. Skipping. err=%s" % (dateRefStr, e))
+                if skipMissing:
+                    logger.debug("Couldn't get data for %s using the specified filter. Skipping. err=%s" % (dateRefStr, e))
+                else:
+                    raise e
                 
             dateRef = dateRef + timedelta(days=daysStep)
             
@@ -318,3 +320,4 @@ class SentinelLoader:
         
     def cleanupCache(self, filesNotUsedDays):
         os.system("find %s -type f -name '*' -mtime +%s -exec rm {} \;" % (self.dataPath, filesNotUsedDays))
+        
