@@ -267,7 +267,7 @@ class SentinelLoader:
                     ldata[ldata==7] = 0
                     ldata[ldata==8] = 0
                     ldata[ldata==9] = 0
-                    ldata[ldata==10] = 1
+                    ldata[ldata==10] = 0
                     ldata[ldata==11] = 1
                     os.remove(labelsFile)
                     
