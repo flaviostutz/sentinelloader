@@ -274,7 +274,7 @@ class SentinelLoader:
                     s = np.shape(ldata)
                     visibleLandRatio = np.sum(ldata)/(s[0]*s[1])
 
-                    if visibleLandRatio<minVisibleLand:
+                    if visibleLandRatio>minVisibleLand:
                         logger.debug("Too few land shown in image. visible ratio=%s" % visibleLandRatio)
                         os.remove(regionFile)
                         useImage = False
