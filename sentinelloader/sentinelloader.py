@@ -252,7 +252,9 @@ class SentinelLoader:
                 else:
                     regionFile = self.getRegionBand(geoPolygon, bandOrIndexName, resolution, dateRefStr)
                 tmp_tile_file = "%s/tmp/%s-%s-%s-%s.tiff" % (self.dataPath, dateRefStr, bandOrIndexName, resolution, uuid.uuid4().hex)
-                                
+
+                useImage = True
+
                 if minVisibleLand > 0:
                     labelsFile = self.getRegionBand(geoPolygon, "SCL", resolution, dateRefStr)
                     ldata = gdal.Open(labelsFile).ReadAsArray()
@@ -268,19 +270,17 @@ class SentinelLoader:
                     ldata[ldata==10] = 1
                     ldata[ldata==11] = 1
                     os.remove(labelsFile)
+                    print(ldata)
                     
                     s = np.shape(ldata)
                     visibleLandRatio = np.sum(ldata)/(s[0]*s[1])
-                    logger.debug("Visible land ratio is %s" % (visibleLandRatio))
 
-                    if visibleLandRatio>=minVisibleLand:
-                        os.system("mv %s %s" % (regionFile,tmp_tile_file))
-                        regionHistoryFiles.append(tmp_tile_file)
-                    else:
+                    if visibleLandRatio<minVisibleLand:
                         logger.debug("Too few land shown in image. visible ratio=%s" % visibleLandRatio)
                         os.remove(regionFile)
+                        useImage = False
                 
-                else:
+                if useImage:
                     os.system("mv %s %s" % (regionFile,tmp_tile_file))
                     regionHistoryFiles.append(tmp_tile_file)                
 
