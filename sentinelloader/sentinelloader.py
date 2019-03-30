@@ -270,7 +270,6 @@ class SentinelLoader:
                     ldata[ldata==10] = 1
                     ldata[ldata==11] = 1
                     os.remove(labelsFile)
-                    print(ldata)
                     
                     s = np.shape(ldata)
                     visibleLandRatio = np.sum(ldata)/(s[0]*s[1])
