@@ -271,14 +271,14 @@ class SentinelLoader:
                     
                     s = np.shape(ldata)
                     visibleLandRatio = np.sum(ldata)/(s[0]*s[1])
-                    logger.info("Visible land ratio is %s" % (visibleLandRatio))
+                    logger.debug("Visible land ratio is %s" % (visibleLandRatio))
 
                     if visibleLandRatio>=minVisibleLand:
                         os.system("mv %s %s" % (regionFile,tmp_tile_file))
                         regionHistoryFiles.append(tmp_tile_file)
                     else:
-                        logger.info("Too few land shown in image. Skipping")
-                        os.remove(tmp_tile_file)
+                        logger.debug("Too few land shown in image. visible ratio=%s" % visibleLandRatio)
+                        os.remove(regionFile)
                 
                 else:
                     os.system("mv %s %s" % (regionFile,tmp_tile_file))
