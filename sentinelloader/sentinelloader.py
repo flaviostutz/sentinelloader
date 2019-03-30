@@ -234,7 +234,7 @@ class SentinelLoader:
         return tmp_file
 
 
-    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5, skipMissing=True, minVisibleLand=0):
+    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5, skipMissing=True, minVisibleLand=0, keepCirrus=False):
         """Gets a series of GeoTIFF files for a region for a specific band and resolution in a date range"""
         logger.info("Getting region history for band %s from %s to %s at %s" % (bandOrIndexName, dateFrom, dateTo, resolution))
         dateFromObj = datetime.strptime(dateFrom, '%Y-%m-%d')
@@ -254,6 +254,9 @@ class SentinelLoader:
                 tmp_tile_file = "%s/tmp/%s-%s-%s-%s.tiff" % (self.dataPath, dateRefStr, bandOrIndexName, resolution, uuid.uuid4().hex)
 
                 useImage = True
+                cirrus = 0
+                if keepCirrus:
+                    cirrus = 1
 
                 if minVisibleLand > 0:
                     labelsFile = self.getRegionBand(geoPolygon, "SCL", resolution, dateRefStr)
@@ -267,7 +270,7 @@ class SentinelLoader:
                     ldata[ldata==7] = 0
                     ldata[ldata==8] = 0
                     ldata[ldata==9] = 0
-                    ldata[ldata==10] = 0
+                    ldata[ldata==10] = cirrus
                     ldata[ldata==11] = 1
                     os.remove(labelsFile)
                     
