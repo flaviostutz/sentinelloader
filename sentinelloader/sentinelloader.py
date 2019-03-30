@@ -233,7 +233,8 @@ class SentinelLoader:
         
         return tmp_file
 
-    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5, skipMissing=True):
+
+    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5, skipMissing=True, minVisibleLand=0):
         """Gets a series of GeoTIFF files for a region for a specific band and resolution in a date range"""
         logger.info("Getting region history for band %s from %s to %s at %s" % (bandOrIndexName, dateFrom, dateTo, resolution))
         dateFromObj = datetime.strptime(dateFrom, '%Y-%m-%d')
@@ -251,10 +252,40 @@ class SentinelLoader:
                 else:
                     regionFile = self.getRegionBand(geoPolygon, bandOrIndexName, resolution, dateRefStr)
                 tmp_tile_file = "%s/tmp/%s-%s-%s-%s.tiff" % (self.dataPath, dateRefStr, bandOrIndexName, resolution, uuid.uuid4().hex)
-                os.system("mv %s %s" % (regionFile,tmp_tile_file))
-                regionHistoryFiles.append(tmp_tile_file)
+                                
+                if minVisibleLand > 0:
+                    labelsFile = self.getRegionBand(geoPolygon, "SCL", resolution, dateRefStr)
+                    ldata = gdal.Open(labelsFile).ReadAsArray()
+                    ldata[ldata==1] = 0
+                    ldata[ldata==2] = 0
+                    ldata[ldata==3] = 0
+                    ldata[ldata==4] = 1
+                    ldata[ldata==5] = 1
+                    ldata[ldata==6] = 1
+                    ldata[ldata==7] = 0
+                    ldata[ldata==8] = 0
+                    ldata[ldata==9] = 0
+                    ldata[ldata==10] = 1
+                    ldata[ldata==11] = 1
+                    os.remove(labelsFile)
+                    
+                    s = np.shape(ldata)
+                    visibleLandRatio = np.sum(ldata)/(s[0]*s[1])
+                    logger.info("Visible land ratio is %s" % (visibleLandRatio))
+
+                    if visibleLandRatio>=minVisibleLand:
+                        os.system("mv %s %s" % (regionFile,tmp_tile_file))
+                        regionHistoryFiles.append(tmp_tile_file)
+                    else:
+                        logger.info("Too few land shown in image. Skipping")
+                        os.remove(tmp_tile_file)
+                
+                else:
+                    os.system("mv %s %s" % (regionFile,tmp_tile_file))
+                    regionHistoryFiles.append(tmp_tile_file)                
 
             except Exception as e:
+                print(e)
                 if skipMissing:
                     logger.debug("Couldn't get data for %s using the specified filter. Skipping. err=%s" % (dateRefStr, e))
                 else:
