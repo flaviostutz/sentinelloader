@@ -19,6 +19,7 @@ import uuid
 import fiona
 import numpy as np
 import traceback
+import pandas as pd
 from .utils import *
 
 logger = logging.getLogger('sentinelloader')
@@ -234,13 +235,16 @@ class SentinelLoader:
         return tmp_file
 
 
-    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5, skipMissing=True, minVisibleLand=0, keepCirrus=False):
+    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5, ignoreMissing=True, minVisibleLand=0, keepVisibleWithCirrus=False, interpolateMissingDates=False):
         """Gets a series of GeoTIFF files for a region for a specific band and resolution in a date range"""
         logger.info("Getting region history for band %s from %s to %s at %s" % (bandOrIndexName, dateFrom, dateTo, resolution))
         dateFromObj = datetime.strptime(dateFrom, '%Y-%m-%d')
         dateToObj = datetime.strptime(dateTo, '%Y-%m-%d')
         dateRef = dateFromObj
         regionHistoryFiles = []
+        
+        lastSuccessfulFile = None
+        pendingInterpolations = 0
         
         while dateRef <= dateToObj:
             logger.debug(dateRef)
@@ -255,7 +259,7 @@ class SentinelLoader:
 
                 useImage = True
                 cirrus = 0
-                if keepCirrus:
+                if keepVisibleWithCirrus:
                     cirrus = 1
 
                 if minVisibleLand > 0:
@@ -278,21 +282,45 @@ class SentinelLoader:
                     visibleLandRatio = np.sum(ldata)/(s[0]*s[1])
 
                     if visibleLandRatio<minVisibleLand:
-                        logger.debug("Too few land shown in image. visible ratio=%s" % visibleLandRatio)
                         os.remove(regionFile)
-                        useImage = False
-                
-                if useImage:
-                    os.system("mv %s %s" % (regionFile,tmp_tile_file))
-                    regionHistoryFiles.append(tmp_tile_file)                
+                        raise Exception("Too few land shown in image. visible ratio=%s" % visibleLandRatio)
+
+                if pendingInterpolations>0:
+                    previousData = gdal.Open(lastSuccessfulFile).ReadAsArray()
+                    nextData = gdal.Open(regionFile).ReadAsArray()
+
+#                     print(np.shape(previousData))
+#                     print(np.shape(nextData))
+                    na = np.empty(np.shape(previousData))
+#                     print("INT")
+#                     print(np.shape(na))
+                    
+                    logger.info("Calculating %s interpolated images" % pendingInterpolations)
+                    series = pd.Series([previousData])
+                    for i in range (0, pendingInterpolations):
+                        series.add([na])
+                    series.add([nextData])
+                    idata = series.interpolate()
+                    #FIXME NOT WORKING. PERFORM 2D TIME INTERPOLATION
+                    print(np.shape(idata))
+                    
+                    pendingInterpolations = 0
+
+                #add good image
+                os.system("mv %s %s" % (regionFile,tmp_tile_file))
+                regionHistoryFiles.append(tmp_tile_file)
+                lastSuccessfulFile = tmp_tile_file
 
             except Exception as e:
-                print(e)
-                if skipMissing:
-                    logger.debug("Couldn't get data for %s using the specified filter. Skipping. err=%s" % (dateRefStr, e))
+                if ignoreMissing:
+                    logger.debug("Couldn't get data for %s using the specified filter. Ignoring. err=%s" % (dateRefStr, e))
                 else:
-                    raise e
-                
+                    if interpolateMissingDates:
+                        if lastSuccessfulFile!=None:
+                            pendingInterpolations = pendingInterpolations + 1
+                    else:
+                        raise e
+
             dateRef = dateRef + timedelta(days=daysStep)
             
         return regionHistoryFiles
