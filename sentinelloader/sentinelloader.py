@@ -303,6 +303,7 @@ class SentinelLoader:
                     series.add([nextData])
                     idata = series.interpolate()
                     #FIXME NOT WORKING. PERFORM 2D TIME INTERPOLATION
+                    raise Exception('Interpolation not yet implemented')
                     print(np.shape(idata))
                     
                     pendingInterpolations = 0
