@@ -253,6 +253,10 @@ class SentinelLoader:
             regionFile = None
             try:
 
+                cirrus = 0
+                if keepVisibleWithCirrus:
+                    cirrus = 1
+                    
                 if minVisibleLand > 0:
                     labelsFile = self.getRegionBand(geoPolygon, "SCL", resolution, dateRefStr)
                     ldata = gdal.Open(labelsFile).ReadAsArray()
@@ -283,9 +287,6 @@ class SentinelLoader:
                 tmp_tile_file = "%s/tmp/%s-%s-%s-%s.tiff" % (self.dataPath, dateRefStr, bandOrIndexName, resolution, uuid.uuid4().hex)
 
                 useImage = True
-                cirrus = 0
-                if keepVisibleWithCirrus:
-                    cirrus = 1
 
                 if pendingInterpolations>0:
                     previousData = gdal.Open(lastSuccessfulFile).ReadAsArray()
