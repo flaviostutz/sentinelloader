@@ -251,16 +251,6 @@ class SentinelLoader:
             dateRefStr = dateRef.strftime("%Y-%m-%d")
             regionFile = None
             try:
-                if bandOrIndexName in ['NDVI', 'NDWI', 'NDMI']:
-                    regionFile = self.getRegionIndex(geoPolygon, bandOrIndexName, resolution, dateRefStr)
-                else:
-                    regionFile = self.getRegionBand(geoPolygon, bandOrIndexName, resolution, dateRefStr)
-                tmp_tile_file = "%s/tmp/%s-%s-%s-%s.tiff" % (self.dataPath, dateRefStr, bandOrIndexName, resolution, uuid.uuid4().hex)
-
-                useImage = True
-                cirrus = 0
-                if keepVisibleWithCirrus:
-                    cirrus = 1
 
                 if minVisibleLand > 0:
                     labelsFile = self.getRegionBand(geoPolygon, "SCL", resolution, dateRefStr)
@@ -284,6 +274,17 @@ class SentinelLoader:
                     if visibleLandRatio<minVisibleLand:
                         os.remove(regionFile)
                         raise Exception("Too few land shown in image. visible ratio=%s" % visibleLandRatio)
+                
+                if bandOrIndexName in ['NDVI', 'NDWI', 'NDMI']:
+                    regionFile = self.getRegionIndex(geoPolygon, bandOrIndexName, resolution, dateRefStr)
+                else:
+                    regionFile = self.getRegionBand(geoPolygon, bandOrIndexName, resolution, dateRefStr)
+                tmp_tile_file = "%s/tmp/%s-%s-%s-%s.tiff" % (self.dataPath, dateRefStr, bandOrIndexName, resolution, uuid.uuid4().hex)
+
+                useImage = True
+                cirrus = 0
+                if keepVisibleWithCirrus:
+                    cirrus = 1
 
                 if pendingInterpolations>0:
                     previousData = gdal.Open(lastSuccessfulFile).ReadAsArray()
