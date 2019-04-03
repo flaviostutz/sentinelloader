@@ -256,7 +256,7 @@ class SentinelLoader:
                 cirrus = 0
                 if keepVisibleWithCirrus:
                     cirrus = 1
-                    
+
                 if minVisibleLand > 0:
                     labelsFile = self.getRegionBand(geoPolygon, "SCL", resolution, dateRefStr)
                     ldata = gdal.Open(labelsFile).ReadAsArray()
@@ -277,7 +277,6 @@ class SentinelLoader:
                     visibleLandRatio = np.sum(ldata)/(s[0]*s[1])
 
                     if visibleLandRatio<minVisibleLand:
-                        os.remove(regionFile)
                         raise Exception("Too few land shown in image. visible ratio=%s" % visibleLandRatio)
                 
                 if bandOrIndexName in ['NDVI', 'NDWI', 'NDMI']:
