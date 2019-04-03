@@ -278,6 +278,8 @@ class SentinelLoader:
 
                     if visibleLandRatio<minVisibleLand:
                         raise Exception("Too few land shown in image. visible ratio=%s" % visibleLandRatio)
+                    else:
+                        logger.debug('Minimum visible land detected. visible ratio=%s' % visibleLandRatio)
                 
                 if bandOrIndexName in ['NDVI', 'NDWI', 'NDMI']:
                     regionFile = self.getRegionIndex(geoPolygon, bandOrIndexName, resolution, dateRefStr)
