@@ -6,6 +6,9 @@ import requests
 import subprocess
 from osgeo import gdal, osr    
 import cartopy.crs as ccrs
+import logging
+
+logger = logging.getLogger('sentinelloader')
 
 def gmlToPolygon(gmlStr):
     footprint1 = ogr.CreateGeometryFromGML(gmlStr)
@@ -23,7 +26,7 @@ def downloadFile(url, filepath, user, password):
         os.makedirs(os.path.dirname(filepath))
 
     with open(filepath, "wb") as f:
-        print("Downloading %s to %s" % (url, filepath))
+        logger.debug("Downloading %s to %s" % (url, filepath))
         response = requests.get(url, auth=(user, password), stream=True)
         if response.status_code != 200:
             raise Exception("Could not download file. status=%s" % response.status_code)
