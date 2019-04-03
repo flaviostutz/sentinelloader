@@ -177,7 +177,7 @@ class SentinelLoader:
                 elif productLevel=='1C':
                     url = "https://scihub.copernicus.eu/dhus/odata/v1/Products('%s')/Nodes('%s.SAFE')/Nodes('GRANULE')/Nodes('%s')/Nodes('IMG_DATA')/Nodes('%s.jp2')/$value" % (sp['uuid'], sp['title'], m.group(1), m.group(2))
                     
-                logger.info('Downloading tile uuid=\'%s\', resolution=\'%s\', band=\'%s\', date=\'%s\'', sp['uuid'], resolutionDownload, bandNamem, date1)
+                logger.info('Downloading tile uuid=\'%s\', resolution=\'%s\', band=\'%s\', date=\'%s\'', sp['uuid'], resolutionDownload, bandName, date1)
                 downloadFile(url, tmp_tile_filejp2, self.user, self.password)
                 #remove near black features on image border due to compression artifacts. if not removed, some black pixels 
                 #will be present on final image, specially when there is an inclined crop in source images
