@@ -3,7 +3,7 @@ from datetime import datetime
 from datetime import timedelta
 from shapely.geometry import Point, Polygon, mapping
 from shapely.affinity import scale
-import rasterio.features.bounds
+import rasterio.features
 import logging
 from osgeo import ogr
 from shapely.wkt import loads
