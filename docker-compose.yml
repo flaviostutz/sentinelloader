@@ -6,6 +6,6 @@ services:
     build: .
     image: flaviostutz/sentinelloader
     ports:
-      - 8888:8888
+      - 8686:8888
       - 6006:6006
 

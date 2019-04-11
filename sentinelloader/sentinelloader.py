@@ -3,6 +3,7 @@ from datetime import datetime
 from datetime import timedelta
 from shapely.geometry import Point, Polygon, mapping
 from shapely.affinity import scale
+import rasterio.features.bounds
 import logging
 from osgeo import ogr
 from shapely.wkt import loads
@@ -78,6 +79,11 @@ class SentinelLoader:
                 resolutionDownload = '10m'
 
         logger.debug("Querying API for candidate tiles")
+
+        bbox = rasterio.features.bounds(geoPolygon)
+        geoPolygon = [(bbox[0], bbox[3]), (bbox[0], bbox[1]),
+            (bbox[2], bbox[1]), (bbox[2], bbox[3])]
+
         area = Polygon(geoPolygon).wkt
         
         #query cache key

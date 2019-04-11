@@ -1,4 +1,4 @@
-FROM flaviostutz/datascience-tools:2.2.0
+FROM flaviostutz/datascience-tools:2.5.0
 
 ENV COPERNICUS_USER ''
 ENV COPERNICUS_PASSWORD ''
@@ -12,6 +12,8 @@ RUN pip uninstall -y sentinelloader
 
 ADD sentinelloader /opt/sentinelloader
 RUN cd /opt && python setup.py install
+
+ADD example.ipynb /notebooks/src/
 
 ADD /test.py /
 
