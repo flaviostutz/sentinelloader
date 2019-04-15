@@ -2,10 +2,10 @@ import logging
 import os
 from osgeo import gdal
 import matplotlib.pyplot as plt
-from sentinelloader import SentinelLoader
+from sentinelloader import Sentinel2Loader
 logging.basicConfig(level=logging.DEBUG)
 
-sl = SentinelLoader('/notebooks/data/output/sentinelcache', 
+sl = Sentinel2Loader('/notebooks/data/output/sentinelcache', 
                     os.environ['COPERNICUS_USER'], os.environ['COPERNICUS_PASSWORD'],
                     apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True)
 
@@ -25,7 +25,7 @@ area = [(-47.873796, -16.044801), (-47.933796, -16.044801),
 # os.remove(geoTiff)
 
 geoTiffs = sl.getRegionHistory(
-    area, 'TCI', '60m', '2019-01-06', '2019-01-30', daysStep=5, dateToleranceDays=5)
+    area, 'TCI', '60m', '2019-01-06', '2019-01-30', daysStep=5)
 for geoTiff in geoTiffs:
     ds = gdal.Open(geoTiff).ReadAsArray()
     plt.figure(figsize=(5, 5))

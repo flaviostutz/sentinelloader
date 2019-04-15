@@ -25,7 +25,7 @@ from .utils import *
 
 logger = logging.getLogger('sentinelloader')
 
-class SentinelLoader:
+class Sentinel2Loader:
 
     def __init__(self, dataPath, user, password, apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, dateToleranceDays=5, cloudCoverage=(0,80), deriveResolutions=True, cacheApiCalls=True, cacheTilesData=True, loglevel=logging.DEBUG):
         logging.basicConfig(level=loglevel)
@@ -324,7 +324,7 @@ class SentinelLoader:
 
             except Exception as e:
                 if ignoreMissing:
-                    logger.debug("Couldn't get data for %s using the specified filter. Ignoring. err=%s" % (dateRefStr, e))
+                    logger.info("Couldn't get data for %s using the specified filter. err=%s" % (dateRefStr, e))
                 else:
                     if interpolateMissingDates:
                         if lastSuccessfulFile!=None:

@@ -7,7 +7,7 @@ setup(
     author='Flávio Stutz',
     license='MIT',
     author_email= 'flaviostutz@gmail.com',
-    description='Sentinel2 satellite data downloader with steroids',
+    description='Sentinel satellite data downloader with steroids',
     packages=find_packages(),
     install_requires=['uuid >= 1.3.0', 'gdal >= 2.2.2',
                       'requests >= 2.21.0', 'pandas >= 0.24.1', 

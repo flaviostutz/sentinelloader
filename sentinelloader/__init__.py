@@ -1,1 +1,1 @@
-from .sentinelloader import SentinelLoader
+from .sentinel2loader import Sentinel2Loader

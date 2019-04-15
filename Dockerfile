@@ -15,5 +15,5 @@ RUN cd /opt && python setup.py install
 
 ADD example.ipynb /notebooks/src/
 
-ADD /test.py /
+ADD /test /notebooks/src/test
 
