@@ -27,7 +27,7 @@ logger = logging.getLogger('sentinelloader')
 
 class Sentinel2Loader:
 
-    def __init__(self, dataPath, user, password, apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, dateToleranceDays=5, cloudCoverage=(0,80), deriveResolutions=True, cacheApiCalls=True, cacheTilesData=True, loglevel=logging.DEBUG):
+    def __init__(self, dataPath, user, password, apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, dateToleranceDays=5, cloudCoverage=(0,80), deriveResolutions=True, cacheApiCalls=True, cacheTilesData=True, loglevel=logging.DEBUG, nirBand='B09'):
         logging.basicConfig(level=loglevel)
         self.api = SentinelAPI(user, password, apiUrl, show_progressbars=showProgressbars)
         self.dataPath = dataPath
@@ -38,6 +38,7 @@ class Sentinel2Loader:
         self.deriveResolutions=deriveResolutions
         self.cacheApiCalls=cacheApiCalls
         self.cacheTilesData=cacheTilesData
+        self.nirBand=nirBand
 
     
     def getProductBandTiles(self, geoPolygon, bandName, resolution, dateReference):
@@ -351,12 +352,12 @@ class Sentinel2Loader:
         os.remove(bandFile)
         return data, geoTransform, projection
         
-    def getRegionIndex(self, geoPolygon, indexName, resolution, dateReference): 
+    def getRegionIndex(self, geoPolygon, indexName, resolution, dateReference):
         if indexName=='NDVI':
             #get band 04
             red,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B04', resolution, dateReference)
             #get band 08
-            nir,_,_ = self._getBandDataFloat(geoPolygon, 'B09', resolution, dateReference)
+            nir,_,_ = self._getBandDataFloat(geoPolygon, self.nirBand, resolution, dateReference)
             #calculate ndvi
             ndvi = ((nir - red)/(nir + red))
             #save file
@@ -365,12 +366,12 @@ class Sentinel2Loader:
             return tmp_file
 
         elif indexName=='NDWI':
-            #get band 03
-            b03,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B03', resolution, dateReference)
             #get band 08
-            nir,_,_ = self._getBandDataFloat(geoPolygon, 'B09', resolution, dateReference)
+            b08,geoTransform,projection = self._getBandDataFloat(geoPolygon, self.nirBand, resolution, dateReference)
+            #get band 11
+            b11,_,_ = self._getBandDataFloat(geoPolygon, 'B11', resolution, dateReference)
             #calculate
-            ndwi = ((b03 - nir)/(b03 + nir))
+            ndwi = ((b08 - b11)/(b08 + b11))
             #save file
             tmp_file = "%s/tmp/ndwi-%s.tiff" % (self.dataPath, uuid.uuid4().hex)
             saveGeoTiff(ndwi, tmp_file, geoTransform, projection)
@@ -378,7 +379,7 @@ class Sentinel2Loader:
 
         elif indexName=='NDMI':
             #get band 03
-            nir,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B09', resolution, dateReference)
+            nir,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B03', resolution, dateReference)
             #get band 08
             swir,_,_ = self._getBandDataFloat(geoPolygon, 'B10', resolution, dateReference)
             #calculate
@@ -388,6 +389,23 @@ class Sentinel2Loader:
             saveGeoTiff(ndwi, tmp_file, geoTransform, projection)
             return tmp_file
         
+        elif indexName=='EVI':
+            #https://github.com/sentinel-hub/custom-scripts/tree/master/sentinel-2
+            index = 2.5 * (B08 - B04) / ((B08 + 6.0 * B04 - 7.5 * B02) + 1.0)
+            
+            #get band 04
+            b04,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B04', resolution, dateReference)
+            #get band 08
+            b08,_,_ = self._getBandDataFloat(geoPolygon, self.nirBand, resolution, dateReference)
+            #get band 02
+            b02,_,_ = self._getBandDataFloat(geoPolygon, 'B02', resolution, dateReference)
+            #calculate
+            evi = 2.5 * (b08 - b04) / ((b08 + (6.0 * b04) - (7.5 * b02)) + 1.0)
+            #save file
+            tmp_file = "%s/tmp/ndmi-%s.tiff" % (self.dataPath, uuid.uuid4().hex)
+            saveGeoTiff(evi, tmp_file, geoTransform, projection)
+            return tmp_file
+
         else:
             raise Exception('\'indexName\' must be NDVI or NDWI')
         
