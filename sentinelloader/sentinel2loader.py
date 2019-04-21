@@ -391,7 +391,7 @@ class Sentinel2Loader:
         
         elif indexName=='EVI':
             #https://github.com/sentinel-hub/custom-scripts/tree/master/sentinel-2
-            index = 2.5 * (B08 - B04) / ((B08 + 6.0 * B04 - 7.5 * B02) + 1.0)
+            # index = 2.5 * (B08 - B04) / ((B08 + 6.0 * B04 - 7.5 * B02) + 1.0)
             
             #get band 04
             b04,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B04', resolution, dateReference)
