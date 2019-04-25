@@ -243,13 +243,16 @@ class Sentinel2Loader:
         return tmp_file
 
 
-    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5, ignoreMissing=True, minVisibleLand=0, keepVisibleWithCirrus=False, interpolateMissingDates=False):
+    def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5, ignoreMissing=True, minVisibleLand=0, visibleLandPolygon=None, keepVisibleWithCirrus=False, interpolateMissingDates=False):
         """Gets a series of GeoTIFF files for a region for a specific band and resolution in a date range"""
         logger.info("Getting region history for band %s from %s to %s at %s" % (bandOrIndexName, dateFrom, dateTo, resolution))
         dateFromObj = datetime.strptime(dateFrom, '%Y-%m-%d')
         dateToObj = datetime.strptime(dateTo, '%Y-%m-%d')
         dateRef = dateFromObj
         regionHistoryFiles = []
+
+        if visibleLandPolygon==None:
+            visibleLandPolygon = geoPolygon
         
         lastSuccessfulFile = None
         pendingInterpolations = 0
@@ -265,7 +268,7 @@ class Sentinel2Loader:
                     cirrus = 1
 
                 if minVisibleLand > 0:
-                    labelsFile = self.getRegionBand(geoPolygon, "SCL", resolution, dateRefStr)
+                    labelsFile = self.getRegionBand(visibleLandPolygon, "SCL", resolution, dateRefStr)
                     ldata = gdal.Open(labelsFile).ReadAsArray()
                     ldata[ldata==1] = 0
                     ldata[ldata==2] = 0
@@ -306,15 +309,15 @@ class Sentinel2Loader:
 #                     print("INT")
 #                     print(np.shape(na))
                     
+                    #FIXME NOT WORKING. PERFORM 2D TIME INTERPOLATION
+                    raise Exception('Interpolation not yet implemented')
                     logger.info("Calculating %s interpolated images" % pendingInterpolations)
                     series = pd.Series([previousData])
                     for i in range (0, pendingInterpolations):
                         series.add([na])
                     series.add([nextData])
                     idata = series.interpolate()
-                    #FIXME NOT WORKING. PERFORM 2D TIME INTERPOLATION
-                    raise Exception('Interpolation not yet implemented')
-                    print(np.shape(idata))
+                    # print(np.shape(idata))
                     
                     pendingInterpolations = 0
 
@@ -408,7 +411,7 @@ class Sentinel2Loader:
 
         else:
             raise Exception('\'indexName\' must be NDVI or NDWI')
-        
+
     def cleanupCache(self, filesNotUsedDays):
         os.system("find %s -type f -name '*' -mtime +%s -exec rm {} \;" % (self.dataPath, filesNotUsedDays))
         
