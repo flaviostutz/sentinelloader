@@ -251,7 +251,7 @@ class Sentinel2Loader:
         dateRef = dateFromObj
         regionHistoryFiles = []
 
-        if visibleLandPolygon==None:
+        if visibleLandPolygon is None:
             visibleLandPolygon = geoPolygon
         
         lastSuccessfulFile = None
