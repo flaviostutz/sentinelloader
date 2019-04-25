@@ -237,7 +237,7 @@ class Sentinel2Loader:
         s1 = convertWGS84To3857(bounds[0], bounds[1])
         s2 = convertWGS84To3857(bounds[2], bounds[3])
 
-        logger.debug('Combining tiles into a single image. tmpfile=%s' % tmp_file)
+        logger.debug('Combining tiles into a single image. sources=%s tmpfile=%s' % (source_tiles, tmp_file))
         os.system("gdalwarp -multi -srcnodata 0 -t_srs EPSG:3857 -te %s %s %s %s %s %s" % (s1[0],s1[1],s2[0],s2[1],source_tiles,tmp_file))
         
         return tmp_file
