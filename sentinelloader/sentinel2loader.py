@@ -268,29 +268,33 @@ class Sentinel2Loader:
                     cirrus = 1
 
                 if minVisibleLand > 0:
-                    labelsFile = self.getRegionBand(visibleLandPolygon, "SCL", resolution, dateRefStr)
-                    ldata = gdal.Open(labelsFile).ReadAsArray()
-                    ldata[ldata==1] = 0
-                    ldata[ldata==2] = 0
-                    ldata[ldata==3] = 0
-                    ldata[ldata==4] = 1
-                    ldata[ldata==5] = 1
-                    ldata[ldata==6] = 1
-                    ldata[ldata==7] = 0
-                    ldata[ldata==8] = 0
-                    ldata[ldata==9] = 0
-                    ldata[ldata==10] = cirrus
-                    ldata[ldata==11] = 1
-                    os.remove(labelsFile)
-                    
-                    s = np.shape(ldata)
-                    visibleLandRatio = np.sum(ldata)/(s[0]*s[1])
+                    try:
+                        labelsFile = self.getRegionBand(visibleLandPolygon, "SCL", resolution, dateRefStr)
+                        ldata = gdal.Open(labelsFile).ReadAsArray()
+                        ldata[ldata==1] = 0
+                        ldata[ldata==2] = 0
+                        ldata[ldata==3] = 0
+                        ldata[ldata==4] = 1
+                        ldata[ldata==5] = 1
+                        ldata[ldata==6] = 1
+                        ldata[ldata==7] = 0
+                        ldata[ldata==8] = 0
+                        ldata[ldata==9] = 0
+                        ldata[ldata==10] = cirrus
+                        ldata[ldata==11] = 1
+                        os.remove(labelsFile)
+                        
+                        s = np.shape(ldata)
+                        visibleLandRatio = np.sum(ldata)/(s[0]*s[1])
 
-                    if visibleLandRatio<minVisibleLand:
-                        raise Exception("Too few land shown in image. visible ratio=%s" % visibleLandRatio)
-                    else:
-                        logger.debug('Minimum visible land detected. visible ratio=%s' % visibleLandRatio)
-                
+                        if visibleLandRatio<minVisibleLand:
+                            raise Exception("Too few land shown in image. visible ratio=%s" % visibleLandRatio)
+                        else:
+                            logger.debug('Minimum visible land detected. visible ratio=%s' % visibleLandRatio)
+
+                    except Exception as exp:
+                        logger.warning('Could not filter minimum visible land using SCL band. dateRef=%s err=%s' % (dateRefStr, exp))
+
                 if bandOrIndexName in ['NDVI', 'NDWI', 'NDMI']:
                     regionFile = self.getRegionIndex(geoPolygon, bandOrIndexName, resolution, dateRefStr)
                 else:
