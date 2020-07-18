@@ -18,6 +18,34 @@ With this utility you can select which bands/resolutions to download. For exampl
 
 ## Usage
 
+### Docker example
+
+* Create docker-compose.yml
+
+```yml
+version: '3.3'
+services:
+  sentinelloader:
+    image: flaviostutz/sentinelloader
+    environment:
+      - COPERNICUS_USER=auser
+      - COPERNICUS_PASSWORD=apass
+    ports:
+      - 8686:8888
+```
+
+* Create an account in Copernicus and change info in docker-compose.yml accordingly
+
+* Run ```docker-compose up -d```
+
+* Open your browser at http://localhost:8686/
+
+* Open Jupyter notebook "example.ipynb" and press "Run"
+
+* You should see something like [this](/notebooks/example.ipynb)
+
+### Python example
+
 ```shell
 pip install git+https://github.com/flaviostutz/sentinelloader
 ```

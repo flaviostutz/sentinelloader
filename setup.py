@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='sentinelloader',
-    version='1.0.0',
+    version='1.0.1',
     url='https://github.com/flaviostutz/sentinelloader.git',
     author='Flávio Stutz',
     license='MIT',

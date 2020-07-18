@@ -2,4 +2,3 @@
 notebooks/data
 .ipynb_checkpoints
 autorun.log
-__pycache__

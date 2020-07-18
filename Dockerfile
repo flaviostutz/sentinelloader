@@ -10,10 +10,8 @@ RUN mkdir /opt/sentinelloader
 RUN cd /opt && python setup.py install
 RUN pip uninstall -y sentinelloader
 
+ADD /notebooks /
+
 ADD sentinelloader /opt/sentinelloader
 RUN cd /opt && python setup.py install
-
-ADD example.ipynb /notebooks/src/
-
-ADD /test /notebooks/src/test
 

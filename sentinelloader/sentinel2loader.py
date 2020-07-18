@@ -178,7 +178,7 @@ class Sentinel2Loader:
                 tmp_tile_filetiff = "%s/tmp/%s.tiff" % (self.dataPath, uuid.uuid4().hex)
                 if not os.path.exists(os.path.dirname(tmp_tile_filejp2)):
                     os.makedirs(os.path.dirname(tmp_tile_filejp2))
-                    
+                        
                 if productLevel=='2A':
                     url = "https://scihub.copernicus.eu/dhus/odata/v1/Products('%s')/Nodes('%s.SAFE')/Nodes('GRANULE')/Nodes('%s')/Nodes('IMG_DATA')/Nodes('R%s')/Nodes('%s.jp2')/$value" % (sp['uuid'], sp['title'], m.group(1), resolutionDownload, m.group(2))
                 elif productLevel=='1C':
@@ -190,8 +190,23 @@ class Sentinel2Loader:
                 #will be present on final image, specially when there is an inclined crop in source images
                 if bandName=='TCI':
                     logger.debug('Removing near black compression artifacts')
-                    os.system("nearblack -o %s %s" % (tmp_tile_filetiff, tmp_tile_filejp2))
-                    os.system("gdal_translate %s %s" % (tmp_tile_filetiff, downloadFilename))
+                    
+                    ret = os.system("which nearblack")
+                    if ret != 0:
+                        raise Exception("gdal nearblack utility was not found in the system. install it")
+                        
+                    ret = os.system("which gdal_translate")
+                    if ret != 0:
+                        raise Exception("gdal gdal_translate utility was not found in the system. install it")
+                        
+                    ret = os.system("nearblack -o %s %s" % (tmp_tile_filetiff, tmp_tile_filejp2))
+                    if ret != 0:
+                        raise Exception("Error during 'nearblack' execution. code=%d" % ret)
+                        
+                    ret = os.system("gdal_translate %s %s" % (tmp_tile_filetiff, downloadFilename))
+                    if ret != 0:
+                        raise Exception("Error during 'gdal_translate' execution. code=%d" % ret)
+                        
                     os.remove(tmp_tile_filetiff)
                 else:
                     os.system("gdal_translate %s %s" % (tmp_tile_filejp2, downloadFilename))
@@ -250,7 +265,7 @@ class Sentinel2Loader:
         dateToObj = datetime.strptime(dateTo, '%Y-%m-%d')
         dateRef = dateFromObj
         regionHistoryFiles = []
-
+        
         if visibleLandPolygon is None:
             visibleLandPolygon = geoPolygon
         
@@ -302,7 +317,7 @@ class Sentinel2Loader:
                 tmp_tile_file = "%s/tmp/%s-%s-%s-%s.tiff" % (self.dataPath, dateRefStr, bandOrIndexName, resolution, uuid.uuid4().hex)
 
                 useImage = True
-
+                
                 if pendingInterpolations>0:
                     previousData = gdal.Open(lastSuccessfulFile).ReadAsArray()
                     nextData = gdal.Open(regionFile).ReadAsArray()
