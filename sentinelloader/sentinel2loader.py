@@ -27,7 +27,7 @@ logger = logging.getLogger('sentinelloader')
 
 class Sentinel2Loader:
 
-    def __init__(self, dataPath, user, password, apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, dateToleranceDays=5, cloudCoverage=(0,80), deriveResolutions=True, cacheApiCalls=True, cacheTilesData=True, loglevel=logging.DEBUG, nirBand='B08'):
+    def __init__(self, dataPath, user, password, apiUrl='https://apihub.copernicus.eu/apihub/', showProgressbars=True, dateToleranceDays=5, cloudCoverage=(0,80), deriveResolutions=True, cacheApiCalls=True, cacheTilesData=True, loglevel=logging.DEBUG, nirBand='B08'):
         logging.basicConfig(level=loglevel)
         self.api = SentinelAPI(user, password, apiUrl, show_progressbars=showProgressbars)
         self.dataPath = dataPath
@@ -140,7 +140,7 @@ class Sentinel2Loader:
         #download tiles data
         tileFiles = []
         for index, sp in products_df.loc[selectedTiles].iterrows():
-            url = "https://scihub.copernicus.eu/dhus/odata/v1/Products('%s')/Nodes('%s.SAFE')/Nodes('MTD_MSIL%s.xml')/$value" % (sp['uuid'], sp['title'], productLevel)
+            url = "https://apihub.copernicus.eu/apihub/odata/v1/Products('%s')/Nodes('%s.SAFE')/Nodes('MTD_MSIL%s.xml')/$value" % (sp['uuid'], sp['title'], productLevel)
             meta_cache_file = self.dataPath + "/products/%s-MTD_MSIL%s.xml" % (sp['uuid'], productLevel)
             mcontents = ''
             if self.cacheTilesData and os.path.isfile(meta_cache_file):
@@ -180,9 +180,9 @@ class Sentinel2Loader:
                     os.makedirs(os.path.dirname(tmp_tile_filejp2))
                         
                 if productLevel=='2A':
-                    url = "https://scihub.copernicus.eu/dhus/odata/v1/Products('%s')/Nodes('%s.SAFE')/Nodes('GRANULE')/Nodes('%s')/Nodes('IMG_DATA')/Nodes('R%s')/Nodes('%s.jp2')/$value" % (sp['uuid'], sp['title'], m.group(1), resolutionDownload, m.group(2))
+                    url = "https://apihub.copernicus.eu/apihub/odata/v1/Products('%s')/Nodes('%s.SAFE')/Nodes('GRANULE')/Nodes('%s')/Nodes('IMG_DATA')/Nodes('R%s')/Nodes('%s.jp2')/$value" % (sp['uuid'], sp['title'], m.group(1), resolutionDownload, m.group(2))
                 elif productLevel=='1C':
-                    url = "https://scihub.copernicus.eu/dhus/odata/v1/Products('%s')/Nodes('%s.SAFE')/Nodes('GRANULE')/Nodes('%s')/Nodes('IMG_DATA')/Nodes('%s.jp2')/$value" % (sp['uuid'], sp['title'], m.group(1), m.group(2))
+                    url = "https://apihub.copernicus.eu/apihub/odata/v1/Products('%s')/Nodes('%s.SAFE')/Nodes('GRANULE')/Nodes('%s')/Nodes('IMG_DATA')/Nodes('%s.jp2')/$value" % (sp['uuid'], sp['title'], m.group(1), m.group(2))
                     
                 logger.info('Downloading tile uuid=\'%s\', resolution=\'%s\', band=\'%s\', date=\'%s\'', sp['uuid'], resolutionDownload, bandName, date1)
                 downloadFile(url, tmp_tile_filejp2, self.user, self.password)
