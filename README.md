@@ -73,4 +73,4 @@ for geoTiff in geoTiffs:
 )
 ```
 
-For a Jupyter example, [click here](example.ipynb)
+For a Jupyter example, [click here](notebooks/example.ipynb)
