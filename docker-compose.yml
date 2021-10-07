@@ -6,8 +6,8 @@ services:
     build: .
     image: flaviostutz/sentinelloader
     environment: 
-      - COPERNICUS_USER=flaviostutz
-      - COPERNICUS_PASSWORD=Through00
+      - COPERNICUS_USER=[yourusername]
+      - COPERNICUS_PASSWORD=[yourpassword]
     volumes:
       - ./notebooks:/notebooks
       - ./sentinelloader:/notebooks/sentinelloader
