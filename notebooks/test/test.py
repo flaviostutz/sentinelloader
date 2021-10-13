@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 sl = Sentinel2Loader('/notebooks/data/output/sentinelcache', 
                     os.environ['COPERNICUS_USER'], os.environ['COPERNICUS_PASSWORD'],
-                    apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True)
+                    apiUrl='https://apihub.copernicus.eu/apihub/', showProgressbars=True)
 
 # area = [(-51.15, -14),(-51.8,-14),(-51.8,-14.25),(-51.15,-14.25),(-51.15,-14)]# area = [(-51.15, -14),(-51.8,-14),(-51.8,-14.25),(-51.15,-14.25),(-51.15,-14)]
 area = [(-47.873796, -16.044801), (-47.933796, -16.044801),
