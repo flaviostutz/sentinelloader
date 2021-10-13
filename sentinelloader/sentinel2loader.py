@@ -408,7 +408,7 @@ class Sentinel2Loader:
             ndmi = ((nir - swir)/(nir + swir))
             #save file
             tmp_file = "%s/tmp/ndmi-%s.tiff" % (self.dataPath, uuid.uuid4().hex)
-            saveGeoTiff(ndwi, tmp_file, geoTransform, projection)
+            saveGeoTiff(ndmi, tmp_file, geoTransform, projection)
             return tmp_file
         
         elif indexName=='EVI':
