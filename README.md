@@ -74,3 +74,29 @@ for geoTiff in geoTiffs:
 ```
 
 For a Jupyter example, [click here](notebooks/example.ipynb)
+
+### API
+
+```python
+def getRegionHistory(self, geoPolygon, bandOrIndexName, resolution, dateFrom, dateTo, daysStep=5, ignoreMissing=True, minVisibleLand=0, visibleLandPolygon=None, keepVisibleWithCirrus=False, interpolateMissingDates=False):
+        """Gets a series of GeoTIFF files for a region for a specific band and resolution in a date range. It will make the best effort to get images near the desired dates and filter out images that have poor land visibility due to cloudy days"""
+```
+
+minVisibleLand - a value from 0 to 1 indicating the percentage of land that must be visible on the image (according to cloud coverage at the time)
+
+sl = SentinelLoader('/notebooks/data/output/sentinelcache', 
+                    'mycopernicususername', 'mycopernicuspassword',
+                    apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, loglevel=logging.DEBUG)
+
+desired_region = Polygon([(-47.873796, -16.044801), (-47.933796, -16.044801),(-47.933796, -15.924801), (-47.873796, -15.924801)])
+
+geoTiffs = sl.getRegionHistory(desired_region, 'TCI', '60m', '2019-01-06', '2019-01-30', daysStep=5)
+
+* In this example, sentinelloader will connect to Coperrnicus with your account and try to get various images in the band "TCI" of the desired region at a resolution of 60m fom 2019-01-06 to 2019-01-30 (if still available in Copernicus Hub) each 5 days (it will try to get the closes image to the days selected, because not every day we have images for every places).
+
+* Supported band names
+
+  * All bands that are part of Sentinel 2 products at Copernicus Hub (SCL, TCI, B01-08, B1A etc)
+  * Sintetic indexes implemented by this tool: NDVI, NDWI, NDWI_MacFeeters or NDMI
+   * If you implement a newer one, please send a PR with it!
+
