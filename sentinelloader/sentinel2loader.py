@@ -310,7 +310,7 @@ class Sentinel2Loader:
                     except Exception as exp:
                         logger.warning('Could not filter minimum visible land using SCL band. dateRef=%s err=%s' % (dateRefStr, exp))
 
-                if bandOrIndexName in ['NDVI', 'NDWI', 'NDMI']:
+                if bandOrIndexName in ['NDVI', 'NDWI', 'NDWI_MacFeeters', 'NDMI']:
                     regionFile = self.getRegionIndex(geoPolygon, bandOrIndexName, resolution, dateRefStr)
                 else:
                     regionFile = self.getRegionBand(geoPolygon, bandOrIndexName, resolution, dateRefStr)
@@ -399,6 +399,18 @@ class Sentinel2Loader:
             saveGeoTiff(ndwi, tmp_file, geoTransform, projection)
             return tmp_file
 
+        elif indexName=='NDWI_MacFeeters':
+            #get band 03
+            b03,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B03', resolution, dateReference)
+            #get band 08
+            b08,_,_ = self._getBandDataFloat(geoPolygon, self.nirBand, resolution, dateReference)
+            #calculate
+            ndwi = ((b03 - b08)/(b03 + b08))
+            #save file
+            tmp_file = "%s/tmp/ndwi-%s.tiff" % (self.dataPath, uuid.uuid4().hex)
+            saveGeoTiff(ndwi, tmp_file, geoTransform, projection)
+            return tmp_file
+
         elif indexName=='NDMI':
             #get band 03
             nir,geoTransform,projection = self._getBandDataFloat(geoPolygon, 'B03', resolution, dateReference)
@@ -429,7 +441,7 @@ class Sentinel2Loader:
             return tmp_file
 
         else:
-            raise Exception('\'indexName\' must be NDVI or NDWI')
+            raise Exception('\'indexName\' must be NDVI, NDWI, NDWI_MacFeeters, or NDMI')
 
     def cleanupCache(self, filesNotUsedDays):
         os.system("find %s -type f -name '*' -mtime +%s -exec rm {} \;" % (self.dataPath, filesNotUsedDays))
