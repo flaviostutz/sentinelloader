@@ -1,4 +1,4 @@
-FROM flaviostutz/datascience-tools:2.5.0
+FROM flaviostutz/datascience-tools:2.9.2
 
 ENV COPERNICUS_USER ''
 ENV COPERNICUS_PASSWORD ''

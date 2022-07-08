@@ -3,3 +3,6 @@ notebooks/data
 .ipynb_checkpoints
 autorun.log
 __pycache__
+dist
+sentinelloader.egg-info
+

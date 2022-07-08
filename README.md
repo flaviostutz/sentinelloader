@@ -46,8 +46,15 @@ services:
 
 ### Python example
 
-```shell
+* To install the latest version from GitHub
+
+```sh
 pip install git+https://github.com/flaviostutz/sentinelloader
+```
+
+* To install the latest version from pypi
+```sh
+pip install sentinelloader
 ```
 
 ```python
@@ -99,4 +106,22 @@ geoTiffs = sl.getRegionHistory(desired_region, 'TCI', '60m', '2019-01-06', '2019
   * All bands that are part of Sentinel 2 products at Copernicus Hub (SCL, TCI, B01-08, B1A etc)
   * Sintetic indexes implemented by this tool: NDVI, NDWI, NDWI_MacFeeters or NDMI
    * If you implement a newer one, please send a PR with it!
+
+## Publishing package to pypi
+
+* Configure your pypi auth token in ~/.pypirc
+  * https://pypi.org/manage/account/
+  * Add API token and follow instructions
+
+* Build and publish the package
+
+```sh
+python3 -m pip install --upgrade build
+
+python3 -m build
+
+python3 -m twine upload dist/*
+```
+
+https://packaging.python.org/en/latest/tutorials/packaging-projects/#uploading-the-distribution-archives
 
