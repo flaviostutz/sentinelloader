@@ -65,9 +65,9 @@ import matplotlib.pyplot as plt
 from sentinelloader import Sentinel2Loader
 from shapely.geometry import Polygon
 
-sl = SentinelLoader('/notebooks/data/output/sentinelcache', 
+sl = Sentinel2Loader('/notebooks/data/output/sentinelcache', 
                     'mycopernicususername', 'mycopernicuspassword',
-                    apiUrl='https://scihub.copernicus.eu/apihub/', showProgressbars=True, loglevel=logging.DEBUG)
+                    apiUrl='https://apihub.copernicus.eu/apihub/', showProgressbars=True, loglevel=logging.DEBUG)
 
 area = Polygon([(-47.873796, -16.044801), (-47.933796, -16.044801),
         (-47.933796, -15.924801), (-47.873796, -15.924801)])
@@ -77,7 +77,6 @@ for geoTiff in geoTiffs:
     print('Desired image was prepared at')
     print(geoTiff)
     os.remove(geoTiff)
-)
 ```
 
 For a Jupyter example, [click here](notebooks/example.ipynb)
